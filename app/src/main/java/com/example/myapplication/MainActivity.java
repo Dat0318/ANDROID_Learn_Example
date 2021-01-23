@@ -1,83 +1,173 @@
 
 package com.example.myapplication;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.List;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+import java.io.IOException;
+import java.io.InputStream;
 
-    Spinner spinner;
-    Button btnAdd;
-    EditText inputLabel;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+public class MainActivity extends AppCompatActivity {
+
+    TextView tv1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        spinner = findViewById(R.id.spinner);
-        btnAdd = findViewById(R.id.btn_add);
-        inputLabel = findViewById(R.id.input_label);
+        tv1 = (TextView) findViewById(R.id.textView1);
+        try {
+            InputStream is = getAssets().open("file.xml");
 
-        spinner.setOnItemSelectedListener(this);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(is);
 
-        loadSpinnerData();
+            Element element = doc.getDocumentElement();
+            element.normalize();
 
-        btnAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String label = inputLabel.getText().toString();
-
-                if (label.trim().length() > 0) {
-                    DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-                    db.insertLabel(label);
-
-                    inputLabel.setText("");
-
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(inputLabel.getWindowToken(),0);
-                    loadSpinnerData();
-                }else {
-                    Toast.makeText(getApplicationContext(),"Please enter label name",Toast.LENGTH_LONG).show();
+            NodeList nList = doc.getElementsByTagName("employee");
+            for (int i = 0; i < nList.getLength();i++) {
+                Node node = nList.item(i);
+                
+                if (node.getNodeType() == Node.ELEMENT_NODE){
+                    Element element2 = (Element) node;
+                    tv1.setText(tv1.getText()+"\nName: " + getValue("name",element2)+"\n");
+                    tv1.setText(tv1.getText()+"\nSalary: " + getValue("salary",element2)+"\n");
+                    tv1.setText(tv1.getText()+"---------------");
                 }
             }
-        });
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void loadSpinnerData() {
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-        List<String> labels = db.getAllLabels();
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.simple_spinner_item, labels);
-
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-    }
-
-
-    @Override
-    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        String label = adapterView.getItemAtPosition(i).toString();
-
-        Toast.makeText(adapterView.getContext(),"You selected: " + label, Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> adapterView) {
+    private String getValue(String name, Element element) {
+        NodeList nodeList = element.getElementsByTagName(name).item(0).getChildNodes();
+        Node node = (Node) nodeList.item(0);
+        return node.getNodeValue();
     }
 }
+//        tv = (TextView) findViewById(R.id.textView1);
+//        try {
+//            SAXParserFactory factory = SAXParserFactory.newInstance();
+//            SAXParser saxParser = factory.newSAXParser();
+//
+//            DefaultHandler handler = new DefaultHandler() {
+//                boolean name = false;
+//                boolean salary = false;
+//
+//                public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+//                    if (qName.equalsIgnoreCase("name")) {
+//                        name = true;
+//                    }
+//                    if (qName.equalsIgnoreCase("salary")) {
+//                        salary = true;
+//                    }
+//                }
+//
+//                public void endElement(String uri, String localName, String qName) throws SAXException {
+//
+//                }
+//
+//                public void characters(char ch[], int start, int length) throws SAXException {
+//                    if (name) {
+//                        tv.setText(tv.getText()+"\n Name: " + new String(ch, start, length));
+//                        name=false;
+//                    }
+//                    if (salary){
+//                        tv.setText(tv.getText() +"\n Salary: " + new String(ch, start, length));
+//                        salary = false;
+//                    }
+//                }
+////                end of characters method
+//            };
+//
+//            InputStream is = getAssets().open("file.xml");
+//            saxParser.parse(is, handler);
+//        } catch (SAXException e) {
+//            e.printStackTrace();
+//        } catch (ParserConfigurationException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//}
+
+//    Spinner spinner;
+//    Button btnAdd;
+//    EditText inputLabel;
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        spinner = findViewById(R.id.spinner);
+//        btnAdd = findViewById(R.id.btn_add);
+//        inputLabel = findViewById(R.id.input_label);
+//
+//        spinner.setOnItemSelectedListener(this);
+//
+//        loadSpinnerData();
+//
+//        btnAdd.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String label = inputLabel.getText().toString();
+//
+//                if (label.trim().length() > 0) {
+//                    DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+//                    db.insertLabel(label);
+//
+//                    inputLabel.setText("");
+//
+//                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+//                    imm.hideSoftInputFromWindow(inputLabel.getWindowToken(),0);
+//                    loadSpinnerData();
+//                }else {
+//                    Toast.makeText(getApplicationContext(),"Please enter label name",Toast.LENGTH_LONG).show();
+//                }
+//            }
+//        });
+//    }
+//
+//    private void loadSpinnerData() {
+//        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+//        List<String> labels = db.getAllLabels();
+//
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, labels);
+//
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        spinner.setAdapter(adapter);
+//    }
+//
+//
+//    @Override
+//    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+//        String label = adapterView.getItemAtPosition(i).toString();
+//
+//        Toast.makeText(adapterView.getContext(),"You selected: " + label, Toast.LENGTH_LONG).show();
+//    }
+//
+//    @Override
+//    public void onNothingSelected(AdapterView<?> adapterView) {
+//    }
+//}
 
 //        EditText editTextFileName, editTextData;
 //        Button saveButton, readButton;
