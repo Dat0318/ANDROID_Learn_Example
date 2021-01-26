@@ -1,66 +1,1373 @@
-
 package com.example.myapplication;
 
+import android.Manifest;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
-import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.io.IOException;
-import java.io.InputStream;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
+public class MainActivity extends Fragment implements OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
-public class MainActivity extends AppCompatActivity {
-
-    TextView tv1;
-
+    private GoogleMap mMap;
+    Location mLastLocation;
+    Marker mCurrLocationMarker;
+    GoogleApiClient mGoogleApiClient;
+    LocationRequest mLocationRequest;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_maps);
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
-        tv1 = (TextView) findViewById(R.id.textView1);
-        try {
-            InputStream is = getAssets().open("file.xml");
-
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(is);
-
-            Element element = doc.getDocumentElement();
-            element.normalize();
-
-            NodeList nList = doc.getElementsByTagName("employee");
-            for (int i = 0; i < nList.getLength();i++) {
-                Node node = nList.item(i);
-                
-                if (node.getNodeType() == Node.ELEMENT_NODE){
-                    Element element2 = (Element) node;
-                    tv1.setText(tv1.getText()+"\nName: " + getValue("name",element2)+"\n");
-                    tv1.setText(tv1.getText()+"\nSalary: " + getValue("salary",element2)+"\n");
-                    tv1.setText(tv1.getText()+"---------------");
-                }
-            }
-        } catch (IOException | ParserConfigurationException | SAXException e) {
-            e.printStackTrace();
-        }
     }
 
-    private String getValue(String name, Element element) {
-        NodeList nodeList = element.getElementsByTagName(name).item(0).getChildNodes();
-        Node node = (Node) nodeList.item(0);
-        return node.getNodeValue();
+    private void setContentView(int activity_maps) {
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                buildGoogleApiClient();
+                mMap.setMyLocationEnabled(true);
+            }
+        }
+        else {
+            buildGoogleApiClient();
+            mMap.setMyLocationEnabled(true);
+        }
+
+    }
+    protected synchronized void buildGoogleApiClient() {
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this);
+        builder.addConnectionCallbacks(this);
+        builder.addOnConnectionFailedListener(this);
+        builder.addApi(LocationServices.API);
+        mGoogleApiClient = builder.build();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+        mLastLocation = location;
+        if (mCurrLocationMarker != null) {
+            mCurrLocationMarker.remove();
+        }
+        //Place current location marker
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title("Current Position");
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        mCurrLocationMarker = mMap.addMarker(markerOptions);
+
+        //move map camera
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+
+        //stop location updates
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    public FragmentManager getSupportFragmentManager() {
+        FragmentManager supportFragmentManager;
+        supportFragmentManager = null;
+        return supportFragmentManager;
     }
 }
+
+
+//import android.os.Bundle;
+//
+//import androidx.fragment.app.FragmentActivity;
+//
+//import com.google.android.gms.maps.CameraUpdateFactory;
+//import com.google.android.gms.maps.GoogleMap;
+//import com.google.android.gms.maps.OnMapReadyCallback;
+//import com.google.android.gms.maps.SupportMapFragment;
+//import com.google.android.gms.maps.model.LatLng;
+//import com.google.android.gms.maps.model.MarkerOptions;
+//
+//public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+//
+//    private GoogleMap mMap;
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_maps);
+//        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+//                .findFragmentById(R.id.map);
+//        mapFragment.getMapAsync(this);
+//    }
+//
+//    @Override
+//    public void onMapReady(GoogleMap googleMap) {
+//        mMap = googleMap;
+//
+//        // Add a marker in Sydney and move the camera
+//        LatLng sydney = new LatLng(-34, 151);
+//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+//    }
+//}
+
+//    EditText password, userName;
+//    Button login, register;
+//    ProgressBar progressBar;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        password = (EditText)findViewById(R.id.editText2);
+//        userName = (EditText)findViewById(R.id.editText1);
+//        login = (Button)findViewById(R.id.button1);
+//        register = (Button)findViewById(R.id.button2);
+//
+//        progressBar = (ProgressBar)findViewById(R.id.progressBar1);
+//        progressBar.setVisibility(View.GONE);
+//
+//        register.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent(MainActivity.this, RegisterUser.class);
+//                startActivity(intent);
+//            }
+//        });
+//
+//        login.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                progressBar.setVisibility(View.VISIBLE);
+//
+//                String s1 = userName.getText().toString();
+//                String s2 = password.getText().toString();
+//                new ExecuteTask().execute(s1,s2);
+//            }
+//        });
+//
+//    }
+//
+//    private class ExecuteTask extends AsyncTask<String,Integer,String> {
+//
+//        @Override
+//        protected String doInBackground(String... strings) {
+//            String res = PostData(strings);
+//            return res;
+//        }
+//
+//        @SuppressLint("WrongConstant")
+//        @Override
+//        protected void onPostExecute(String s) {
+//            progressBar.setVisibility(View.GONE);
+//            Toast.makeText(getApplicationContext(), s, 3000).show();
+//        }
+//    }
+//
+//    private String PostData(String[] strings) {
+//        String s = "";
+//        try {
+//            HttpClient httpClient = new DefaultHttpClient();
+//            HttpPost httpPost = new HttpPost("http://dev.apeckids.com/api/v2/auth/login");
+//
+//            List<NameValuePair> list = new ArrayList<NameValuePair>();
+//
+//            list.add(new BasicNameValuePair("username", strings[0]));
+//            list.add(new BasicNameValuePair("password",strings[1]));
+//            httpPost.setEntity(new UrlEncodedFormEntity(list));
+//            HttpResponse httpResponse=  httpClient.execute(httpPost);
+//
+//            HttpEntity httpEntity = httpResponse.getEntity();
+//            s = readResponse(httpResponse);
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+//        return s;
+//    }
+//
+//    private String readResponse(HttpResponse httpResponse) {
+//        InputStream is = null;
+//        String return_text = "";
+//        try {
+//            is = httpResponse.getEntity().getContent();
+//            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+//            String line = "";
+//            StringBuffer sb = new StringBuffer();
+//            while ((line = bufferedReader.readLine())!= null){
+//                sb.append(line);
+//            }
+//            return_text = sb.toString();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return return_text;
+//    }
+//}
+
+//    ImageView anm;
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.logo);
+//        anm = (ImageView)findViewById(R.id.anm);
+//
+//        anm.setBackgroundResource(R.drawable.animation);
+//    }
+//
+//    public void onWindowFocusChanged(boolean hasFocus) {
+//        super.onWindowFocusChanged(hasFocus);
+//        AnimationDrawable frameAnimation = (AnimationDrawable) anm.getBackground();
+//        if (hasFocus){
+//            frameAnimation.start();
+//        }else{
+//            frameAnimation.stop();
+//        }
+//    }
+//}
+
+
+//    DemoView demoView;
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        demoView = new DemoView(this);
+//        setContentView(demoView);
+//    }
+//
+//    private class DemoView extends View {
+//
+//        public DemoView(Context context) {
+//            super(context);
+//        }
+//
+//        @Override
+//        protected void onDraw(Canvas canvas) {
+//            super.onDraw(canvas);
+//            Paint paint = new Paint();
+//            paint.setStyle(Paint.Style.FILL);
+//            paint.setColor(Color.WHITE);
+//            canvas.drawPaint(paint);
+//
+//            paint.setAntiAlias(false);
+//            paint.setColor(Color.BLUE);
+//            canvas.drawCircle(20,20,15,paint);
+//
+//            paint.setAntiAlias(true);
+//            paint.setColor(Color.GREEN);
+//            canvas.drawCircle(60,20,15, paint);
+//
+//            paint.setAntiAlias(false);
+//            paint.setColor(Color.RED);
+//            canvas.drawRect(100, 5, 200, 30, paint);
+//
+//            canvas.rotate(-45);
+//            paint.setStyle(Paint.Style.FILL);
+//            canvas.drawText("Graphics Rotation", 40,180, paint);
+//
+////            canvas.restore();
+//        }
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.main, menu);
+//        return true;
+//    }
+//}
+
+//    SensorManager sm = null;
+//    TextView textView1 = null;
+//    List list;
+//
+//    SensorEventListener sel = new SensorEventListener() {
+//        @Override
+//        public void onSensorChanged(SensorEvent sensorEvent) {
+//            float[] values = sensorEvent.values;
+//            textView1.setText("x: " + values[0] + "\ny: " + values[1] + "\nz: " + values[2]);
+//        }
+//
+//        @Override
+//        public void onAccuracyChanged(Sensor sensor, int i) {
+//
+//        }
+//    };
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+//
+//        textView1 = (TextView)findViewById(R.id.textView1);
+//
+//        list = sm.getSensorList(Sensor.TYPE_ACCELEROMETER);
+//        if (list.size() > 0) {
+//            sm.registerListener(sel,(Sensor)list.get(0), SensorManager.SENSOR_DELAY_NORMAL);
+//        } else {
+//            Toast.makeText(getBaseContext(),"Error: No Acceleromenter.",Toast.LENGTH_LONG).show();
+//        }
+//    }
+//
+//    @Override
+//    protected void onStop() {
+//        if (list.size() > 0) {
+//            sm.unregisterListener(sel);
+//        }
+//        super.onStop();
+//    }
+//}
+
+//    private static final int CAMERA_REQUEST = 1888;
+//    ImageView imageView;
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        imageView = (ImageView)findViewById(R.id.imageView1);
+//        Button photoButton = (Button)findViewById(R.id.button1);
+//
+//        photoButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                startActivityForResult(cameraIntent, CAMERA_REQUEST);
+//            }
+//        });
+//    }
+//
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (requestCode == CAMERA_REQUEST) {
+//            Bitmap photo = (Bitmap) data.getExtras().get("data");
+//            imageView.setImageBitmap(photo);
+//        }
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//public class MainActivity extends Activity implements TextToSpeech.OnInitListener {
+//public class MainActivity extends Activity {
+//    TextView textView1;
+//    private static final int REQUEST_ENABLE_BT = 1;
+//    BluetoothAdapter btAdapter;
+//    Button enableButton, disableButton;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        enableButton = (Button)findViewById(R.id.button1);
+//        disableButton = (Button)findViewById(R.id.button2);
+//
+//        enableButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//                wifi.setWifiEnabled(true);
+//            }
+//        });
+//
+//        disableButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                WifiManager wifi = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//                wifi.setWifiEnabled(false);
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//        textView1 = (TextView)findViewById(R.id.textView1);
+//        btAdapter = BluetoothAdapter.getDefaultAdapter();
+//        textView1.append("\nAdapter: " + btAdapter);
+//
+//        checkBluetoothState();
+//    }
+//
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == REQUEST_ENABLE_BT) {
+//            checkBluetoothState();
+//        }
+//    }
+//
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//    }
+//
+//    private void checkBluetoothState() {
+//        if (btAdapter==null) {
+//            textView1.append("\nBluetooth NOT supported.Aborting.");
+//            return;
+//        } else {
+//            if (btAdapter.isEnabled()) {
+//                textView1.append("\nBluetooth is enabled ...");
+//
+//                textView1.append("\nPared Devices are: ");
+//                Set<BluetoothDevice> devices = btAdapter.getBondedDevices();
+//                for (BluetoothDevice device: devices) {
+//                    textView1.append("\n Device: "+device.getName() + ", "+device);
+//                }
+//            } else {
+//                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+//            }
+//        }
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//    EditText mobileno, message, editTextTo, editTextSubject, editTextMessage;
+//    Button sendsms, send;
+//
+//    private static final int REQUEST_ENABLE_BT = 0;
+//    private static final int REQUEST_DISCOVERABLE_BT = 0;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        final TextView out = (TextView)findViewById(R.id.out);
+//        final Button button1 = (Button)findViewById(R.id.button1);
+//        final Button button2 = (Button)findViewById(R.id.button2);
+//        final Button button3 = (Button)findViewById(R.id.button3);
+//        final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//        if (mBluetoothAdapter == null) {
+//            out.append("device not supported");
+//        }
+//        button1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (!mBluetoothAdapter.isEnabled()) {
+//                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+//                }
+//            }
+//        });
+//
+//        button2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (!mBluetoothAdapter.isDiscovering()) {
+//                    Toast.makeText(getApplicationContext(),"MAKING YOUR DEVICE DISCOVERABLE",Toast.LENGTH_LONG).show();
+//
+//                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+//                    startActivityForResult(enableBtIntent, REQUEST_DISCOVERABLE_BT);
+//                }
+//            }
+//        });
+//
+//        button3.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                mBluetoothAdapter.disable();
+//                Toast.makeText(getApplicationContext(),"TURNING_OFF BLUETOOTH", Toast.LENGTH_LONG).show();
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main,menu);
+//        return true;
+//    }
+//}
+
+//        editTextTo = (EditText) findViewById(R.id.editText1);
+//        editTextSubject = (EditText) findViewById(R.id.editText2);
+//        editTextMessage = (EditText) findViewById(R.id.editText3);
+//
+//        send = (Button)findViewById(R.id.button1);
+//
+//        send.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String to = editTextTo.getText().toString();
+//                String subject = editTextSubject.getText().toString();
+//                String message = editTextMessage.getText().toString();
+//
+//                Intent email = new Intent(Intent.ACTION_SEND);
+//                email.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
+//                email.putExtra(Intent.EXTRA_SUBJECT, subject);
+//                email.putExtra(Intent.EXTRA_TEXT, message);
+//
+//                email.setType("message/rfc822");
+//                startActivity(Intent.createChooser(email, "Choose an Email client:"));
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//        mobileno = (EditText)findViewById(R.id.editText1);
+//        message = (EditText)findViewById(R.id.editText2);
+//        sendsms = (Button)findViewById(R.id.button1);
+//
+//        sendsms.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String no = mobileno.getText().toString();
+//                String msg = message.getText().toString();
+//
+//                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+//                PendingIntent pi = PendingIntent.getActivity(getApplicationContext(),0,intent,0);
+//
+//                SmsManager sms = SmsManager.getDefault();
+//                sms.sendTextMessage(no, null, msg, pi, null);
+//                Toast.makeText(getApplicationContext(),"Message Sent successfully!", Toast.LENGTH_LONG).show();
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main,menu);
+//        return true;
+//    }
+//}
+
+//    TextView textView1;
+//    private TextToSpeech tts;
+//    EditText editText1;
+//    Button button1;
+
+//        editText1 = (EditText)findViewById(R.id.editText1);
+//        button1 = (Button)findViewById(R.id.button1);
+//
+//        button1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String number = editText1.getText().toString();
+//                Intent callIntent = new Intent(Intent.ACTION_CALL);
+//                Log.e("TAG",number);
+//                callIntent.setData(Uri.parse("tel:"+number));
+//                startActivity(callIntent);
+//            }
+//        });
+//
+//
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//        tts = new TextToSpeech(this, this);
+//        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+//
+//        PhoneStateListener callStateListener = new PhoneStateListener(){
+//            @Override
+//            public void onCallStateChanged(int state, String phoneNumber) {
+//                if (state == TelephonyManager.CALL_STATE_RINGING) {
+//                    tts.speak(phoneNumber + " calling", TextToSpeech.QUEUE_FLUSH,null);
+//                    Toast.makeText(getApplicationContext(),"Phone is Ringin: " + phoneNumber, Toast.LENGTH_LONG).show();
+//                }
+//                if (state == TelephonyManager.CALL_STATE_OFFHOOK) {
+//                    Toast.makeText(getApplicationContext(),"Phone in a call or call picked",Toast.LENGTH_LONG).show();
+//                }
+//                if (state == TelephonyManager.CALL_STATE_IDLE) {
+//                    // phone is neither ringing in a call
+//                }
+//            }
+//        };
+//        telephonyManager.listen(callStateListener,PhoneStateListener.LISTEN_CALL_STATE);
+//    }
+//
+//
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public void onInit(int i) {
+//        if (i == TextToSpeech.SUCCESS) {
+//            int result = tts.setLanguage(Locale.US);
+//            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+//                Log.e("TTS","This Language is not supported");
+//            } else {
+//
+//            }
+//        } else {
+//            Log.e("TTS","Initillization Failed!");
+//        }
+//    }
+//
+//    @Override
+//    protected void onDestroy() {
+//        if (tts != null) {
+//            tts.stop();
+//            tts.shutdown();
+//        }
+//        super.onDestroy();
+//    }
+//}
+//
+//        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+//        PhoneStateListener callStateListener = new PhoneStateListener() {
+//            public void onCallStateChange(int state, String incomingNumber) {
+//                if (state == TelephonyManager.CALL_STATE_RINGING) {
+//                    Toast.makeText(getApplicationContext(),"Phone Is Ringing",Toast.LENGTH_LONG).show();
+//                }
+//                if (state == TelephonyManager.CALL_STATE_OFFHOOK) {
+//                    Toast.makeText(getApplicationContext(),"Phone is currently in a call",Toast.LENGTH_LONG).show();
+//                }
+//                if (state == TelephonyManager.CALL_STATE_IDLE) {
+//                    Toast.makeText(getApplicationContext(),"Phone is neither ringing nor in a call",Toast.LENGTH_LONG).show();
+//                }
+//            }
+//        };
+//        telephonyManager.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.main, menu);
+//        return true;
+//    }
+//}
+
+
+//        textView1 = (TextView) findViewById(R.id.textView1);
+//
+//        //Get the instance of TelephonyManager
+//        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+//
+//        //Calling the methods of TelephonyManager the returns the information
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
+//        String IMEINumber = tm.getDeviceId();
+//        String subscriberID = tm.getDeviceId();
+//        String SIMSerialNumber = tm.getSimSerialNumber();
+//        String networkCountryISO = tm.getNetworkCountryIso();
+//        String SIMCountryISO = tm.getSimCountryIso();
+//        String softwareVersion = tm.getDeviceSoftwareVersion();
+//        String voiceMailNumber = tm.getVoiceMailNumber();
+//
+//        //Get the phone type
+//        String strphoneType = "";
+//
+//        int phoneType = tm.getPhoneType();
+//
+//        switch (phoneType) {
+//            case (TelephonyManager.PHONE_TYPE_CDMA):
+//                strphoneType = "CDMA";
+//                break;
+//            case (TelephonyManager.PHONE_TYPE_GSM):
+//                strphoneType = "GSM";
+//                break;
+//            case (TelephonyManager.PHONE_TYPE_NONE):
+//                strphoneType = "NONE";
+//                break;
+//        }
+//
+//        //getting information if phone is in roaming
+//        boolean isRoaming = tm.isNetworkRoaming();
+//
+//        String info = "Phone Details:\n";
+//        info += "\n IMEI Number:" + IMEINumber;
+//        info += "\n SubscriberID:" + subscriberID;
+//        info += "\n Sim Serial Number:" + SIMSerialNumber;
+//        info += "\n Network Country ISO:" + networkCountryISO;
+//        info += "\n SIM Country ISO:" + SIMCountryISO;
+//        info += "\n Software Version:" + softwareVersion;
+//        info += "\n Voice Mail Number:" + voiceMailNumber;
+//        info += "\n Phone Network Type:" + strphoneType;
+//        info += "\n In Roaming? :" + isRoaming;
+//
+//        textView1.setText(info);
+//    }
+//}
+//        textView1 = (TextView) findViewById(R.id.textView1);
+//
+//        TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+//
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
+//        Log.e("INFO","Run Here");
+//
+//        String IMEINumber = tm.getDeviceId();
+//        String subscriberID = tm.getSubscriberId();
+//        String SIMSerialNumber = tm.getSimSerialNumber();
+//        String networkCountryISO = tm.getNetworkCountryIso();
+//        String SIMCountryISO = tm.getSimCountryIso();
+//        String softwareVersion = tm.getDeviceSoftwareVersion();
+//        String voiceMailNumber = tm.getVoiceMailNumber();
+//
+//        String strphoneType = "";
+//        int phoneType = tm.getPhoneType();
+//
+//        switch (phoneType) {
+//            case (TelephonyManager.PHONE_TYPE_CDMA):
+//                strphoneType = "CDMA";
+//                break;
+//            case (TelephonyManager.PHONE_TYPE_GSM):
+//                strphoneType = "GSM";
+//                break;
+//            case (TelephonyManager.PHONE_TYPE_NONE):
+//                strphoneType = "NONE";
+//                break;
+//        }
+//
+//        boolean isRoaming = tm.isNetworkRoaming();
+//        String info = "Phone DetailsL: \n";
+//        info += "\n IMEI Number: " + IMEINumber;
+//        info += "\n SubscriberID: " + subscriberID;
+//        info += "\n Sim Serial Number: " + SIMSerialNumber;
+//        info += "\n Network Country ISO: " + SIMCountryISO;
+//        info += "\n Software Version: " + softwareVersion;
+//        info += "\n Voice Mail Number: " + voiceMailNumber;
+//        info += "\n Phone Network type " + strphoneType;
+//        info += "\n Is Roaming?: " + isRoaming;
+//
+//        textView1.setText(info);
+//    }
+//}
+
+//
+//public class MainActivity extends Activity implements TextToSpeech.OnInitListener, AdapterView.OnItemSelectedListener {
+//
+//    private TextToSpeech tts;
+//    private Button buttonSpeak;
+//    private EditText editText;
+//    private Spinner speedSpinner, pitchSpinner;
+//    private static String speed = "Normal";
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        tts = new TextToSpeech(this, this);
+//        buttonSpeak = (Button) findViewById(R.id.button1);
+//        editText = (EditText) findViewById(R.id.editText1);
+//        speedSpinner = (Spinner) findViewById(R.id.spinner1);
+//
+//        loadSpinnerData();
+//        speedSpinner.setOnItemSelectedListener(this);
+//
+//        buttonSpeak.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                setSpeed();
+//                speakOut();
+//            }
+//        });
+//    }
+//
+//    private void speakOut() {
+//        String text = editText.getText().toString();
+//        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+//    }
+//
+//    private void setSpeed() {
+//        if (speed.equals("Very Slow")){
+//            tts.setSpeechRate(0.1f);
+//        } else if (speed.equals("Slow")){
+//            tts.setSpeechRate(0.5f);
+//        } else if (speed.equals("Normal")){
+//            tts.setSpeechRate(1.0f);
+//        } else if (speed.equals("Fast")){
+//            tts.setSpeechRate(1.5f);
+//        } else if (speed.equals("Very Fast")){
+//            tts.setSpeechRate(2.0f);
+//        }
+//    }
+//
+//    private void loadSpinnerData() {
+//
+//        List<String> labels = new ArrayList<String>();
+//        labels.add("Very Slow");
+//        labels.add("Slow");
+//        labels.add("Normal");
+//        labels.add("Fast");
+//        labels.add("Very Fast");
+//
+//        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, labels);
+//
+//        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        speedSpinner.setAdapter(dataAdapter);
+//    }
+//
+//    @Override
+//    public void onInit(int i) {
+//        if (i == TextToSpeech.SUCCESS) {
+//            int result = tts.setLanguage(Locale.US);
+//            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+//                Log.e("TTS", "This Language is not Support");
+//            } else {
+//                buttonSpeak.setEnabled(true);
+//                speakOut();
+//            }
+//        } else {
+//            Log.e("TTS","Initillzation Failed!");
+//        }
+//    }
+//
+//    @Override
+//    protected void onDestroy() {
+//        if (tts != null) {
+//            tts.stop();
+//            tts.shutdown();
+//        }
+//        super.onDestroy();
+//    }
+//
+//    @Override
+//    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+//        speed = adapterView.getItemAtPosition(i).toString();
+//
+//        Toast.makeText(adapterView.getContext(), "You selected: " + i, Toast.LENGTH_LONG).show();
+//    }
+//
+//    @Override
+//    public void onNothingSelected(AdapterView<?> adapterView) {
+//
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//    private TextToSpeech tts;
+//    private Button buttonSpeak;
+//    private EditText editText;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        tts = new TextToSpeech(this, this);
+//        buttonSpeak= (Button)findViewById(R.id.button1);
+//        editText = (EditText)findViewById(R.id.editText1);
+//
+//        buttonSpeak.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                speakOut();
+//            }
+//        });
+//    }
+//
+//    @Override
+//    protected void onDestroy() {
+//        if (tts != null) {
+//            tts.stop();
+//            tts.shutdown();
+//        }
+//        super.onDestroy();
+//    }
+//
+//    @Override
+//    public void onInit(int status) {
+//        if (status == TextToSpeech.SUCCESS){
+//            int result = tts.setLanguage(Locale.US);
+//
+//            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+//                Log.e("TTS","This language is not support");
+//            } else {
+//                buttonSpeak.setEnabled(true);
+//                speakOut();
+//            }
+//        } else {
+//            Log.e("TTS", "Initilization Failed!");
+//        }
+//    }
+//
+//    private void speakOut() {
+//        String text = editText.getText().toString();
+//        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//    MediaRecorder recorder;
+//    File audiofile = null;
+//    static final String TAG = "MediaRecording";
+//    Button startButton,stopButton;
+//
+//    @Override
+//    public void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        startButton = (Button) findViewById(R.id.button1);
+//        stopButton = (Button) findViewById(R.id.button2);
+//    }
+//
+//    public void startRecording(View view) throws IOException {
+//        startButton.setEnabled(false);
+//        stopButton.setEnabled(true);
+//        //Creating file
+//        File dir = Environment.getExternalStorageDirectory();
+//        try {
+//            audiofile = File.createTempFile("sound", ".3gp", dir);
+//        } catch (IOException e) {
+//            Log.e(TAG, "external storage access error");
+//            return;
+//        }
+//        //Creating MediaRecorder and specifying audio source, output format, encoder & output format
+//        recorder = new MediaRecorder();
+//        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+//        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+//        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+//        recorder.setOutputFile(audiofile.getAbsolutePath());
+//        recorder.prepare();
+//        recorder.start();
+//    }
+//
+//    public void stopRecording(View view) {
+//        startButton.setEnabled(true);
+//        stopButton.setEnabled(false);
+//        //stopping recorder
+//        recorder.stop();
+//        recorder.release();
+//        //after stopping the recorder, create the sound file and add it to media library.
+//        addRecordingToMediaLibrary();
+//    }
+//
+//    protected void addRecordingToMediaLibrary() {
+//        //creating content values of size 4
+//        ContentValues values = new ContentValues(4);
+//        long current = System.currentTimeMillis();
+//        values.put(MediaStore.Audio.Media.TITLE, "audio" + audiofile.getName());
+//        values.put(MediaStore.Audio.Media.DATE_ADDED, (int) (current / 1000));
+//        values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/3gpp");
+//        values.put(MediaStore.Audio.Media.DATA, audiofile.getAbsolutePath());
+//
+//        //creating content resolver and storing it in the external content uri
+//        ContentResolver contentResolver = getContentResolver();
+//        Uri base = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+//        Uri newUri = contentResolver.insert(base, values);
+//
+//        //sending broadcast message to scan the media file so that it can be available
+//        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
+//        Toast.makeText(this, "Added File " + newUri, Toast.LENGTH_LONG).show();
+//    }
+//}
+
+//import android.app.Activity;
+//import android.content.ContentResolver;
+//import android.content.ContentValues;
+//import android.content.Intent;
+//import android.media.MediaRecorder;
+//import android.net.Uri;
+//import android.os.Bundle;
+//import android.os.Environment;
+//import android.provider.MediaStore;
+//import android.util.Log;
+//import android.view.View;
+//import android.widget.Button;
+//import android.widget.Toast;
+//
+//import androidx.annotation.Nullable;
+//
+//import java.io.File;
+//import java.io.IOException;
+//
+//public class MainActivity extends Activity {
+//    MediaRecorder recorder;
+//    File audiofile = null;
+//    static final String TAG = "MediaRecording";
+//    Button startButton, stopButton;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        startButton = (Button)findViewById(R.id.button1);
+//        stopButton = (Button)findViewById(R.id.button2);
+//    }
+//
+////    public void startRecording(View view) throws IOException {
+////        startButton.setEnabled(false);
+////        stopButton.setEnabled(true);
+////
+////        File dir = Environment.getExternalStorageDirectory();
+////        try {
+////            audiofile = File.createTempFile("sound","3gp",dir);
+////        } catch (IOException e){
+////            Log.e(TAG,"external storage access error");
+////            return;
+////        }
+////
+////        recorder = new MediaRecorder();
+////        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+////        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+////        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+////        recorder.setOutputFile(audiofile.getAbsolutePath());
+////        recorder.prepare();
+////        recorder.start();
+////    }
+//
+//    public void startRecording(View view) throws IOException {
+//        startButton.setEnabled(false);
+//        stopButton.setEnabled(true);
+//        //Creating file
+//        File dir = Environment.getExternalStorageDirectory();
+//        try {
+//            audiofile = File.createTempFile("sound", ".3gp", dir);
+//        } catch (IOException e) {
+//            Log.e(TAG, "external storage access error");
+//            return;
+//        }
+//        //Creating MediaRecorder and specifying audio source, output format, encoder & output format
+//        recorder = new MediaRecorder();
+//        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+//        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+//        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+//        recorder.setOutputFile(audiofile.getAbsolutePath());
+//        recorder.prepare();
+//        recorder.start();
+//    }
+//
+//    public void stopRecording(View view) {
+//        startButton.setEnabled(true);
+//        stopButton.setEnabled(false);
+//        //stopping recorder
+//        recorder.stop();
+//        recorder.release();
+//        //after stopping the recorder, create the sound file and add it to media library.
+//        addRecordingToMediaLibrary();
+//    }
+//
+//    protected void addRecordingToMediaLibrary() {
+//        //creating content values of size 4
+//        ContentValues values = new ContentValues(4);
+//        long current = System.currentTimeMillis();
+//        values.put(MediaStore.Audio.Media.TITLE, "audio" + audiofile.getName());
+//        values.put(MediaStore.Audio.Media.DATE_ADDED, (int) (current / 1000));
+//        values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/3gpp");
+//        values.put(MediaStore.Audio.Media.DATA, audiofile.getAbsolutePath());
+//
+//        //creating content resolver and storing it in the external content uri
+//        ContentResolver contentResolver = getContentResolver();
+//        Uri base = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+//        Uri newUri = contentResolver.insert(base, values);
+//
+//        //sending broadcast message to scan the media file so that it can be available
+//        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
+//        Toast.makeText(this, "Added File " + newUri, Toast.LENGTH_LONG).show();
+//    }
+//}
+
+//    public void stopRecording(View view) {
+//        startButton.setEnabled(true);
+//        stopButton.setEnabled(false);
+//
+//        recorder.stop();
+//        recorder.release();
+//        addRecordingToMediaLibrary();
+//    }
+//
+//    private void addRecordingToMediaLibrary() {
+//        ContentValues values = new ContentValues(4);
+//        long current = System.currentTimeMillis();
+//        values.put(MediaStore.Audio.Media.TITLE,"audio"+audiofile.getName());
+//        values.put(MediaStore.Audio.Media.DATE_ADDED,(int)(current/1000));
+//        values.put(MediaStore.Audio.Media.MIME_TYPE,"audio/3gp");
+//        values.put(MediaStore.Audio.Media.DATA, audiofile.getAbsolutePath());
+//
+//        ContentResolver contentResolver = getContentResolver();
+//        Uri base = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+//        Uri newUri = contentResolver.insert(base, values);
+//
+//        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
+//        Toast.makeText(this,"Added File"+newUri,Toast.LENGTH_LONG).show();
+//    }
+//}
+
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        VideoView videoView = (VideoView) findViewById(R.id.videoView1);
+//        MediaController mediaController = new MediaController(this);
+//        mediaController.setAnchorView(videoView);
+//
+//        Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath()+"SDCARD/Movies/sample-mp4-file.mp4");
+//
+//        videoView.setMediaController(mediaController);
+//        videoView.setVideoURI(uri);
+//        videoView.requestFocus();
+//        videoView.start();
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//    public static final String JSON_STRING = "{\"employee\":{\"name\":\"Sachin\",\"salary\":56000}}";
+//    Button start, pause, stop;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        start = (Button) findViewById(R.id.button1);
+//        pause = (Button) findViewById(R.id.button2);
+//        stop = (Button) findViewById(R.id.button3);
+//
+//        final MediaPlayer mp = new MediaPlayer();
+//        try {
+//            mp.setDataSource(Environment.getExternalStorageDirectory().getPath()+"SDCARD/Download/Exmaple.mp3");
+//            mp.prepare();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        start.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                mp.start();
+//            }
+//        });
+//
+//        pause.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                mp.pause();
+//            }
+//        });
+//
+//        stop.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                mp.stop();
+//            }
+//        });
+//    }
+//}
+
+//        MediaPlayer mp = new MediaPlayer();
+//        try {
+//            mp.setDataSource("/sdcard/Music/maine.mp3");
+//            mp.prepare();
+//            mp.start();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
+//}
+
+//        TextView textView1 = (TextView) findViewById(R.id.textView1);
+//
+//        try {
+//            JSONObject emp = (new JSONObject(JSON_STRING)).getJSONObject("employee");
+//            String empname = emp.getString("name");
+//            int empsalary = emp.getInt("salary");
+//
+//            String str = "Employ Name: " + empname + " Employee Salary: " + empsalary;
+//            textView1.setText(str);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+
+//        TextView output = (TextView) findViewById(R.id.textView1);
+//        String strJson = "{\"Employee\": [{\"id\":\"101\",\"Name\": \"Snoo chiin\",\"salary\": \"50000\"},{\"id\":\"102\",\"Name\": \"Vimal content\",\"salary\": \"60000\"}]}";
+//        String data = "";
+//        try {
+//            JSONObject jsonRootObject = new JSONObject((strJson));
+//            JSONArray jsonArray = jsonRootObject.optJSONArray("Employee");
+//
+//            for (int i = 0; i < jsonArray.length(); i ++) {
+//                JSONObject jsonObject = jsonArray.getJSONObject(i);
+//
+//                int id = Integer.parseInt(jsonObject.optString("id").toString());
+//                String name = jsonObject.optString("name").toString();
+//                float salary = Float.parseFloat(jsonObject.optString("salary").toString());
+//
+//                data += "Node"+i+"\n id ="+id+"\n Name= "+name+"\n Salary= " + salary+"\n";
+//            }
+//            output.setText(data);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//}
+
+//public class MainActivity extends AppCompatActivity {
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        ListView listView = (ListView) findViewById(R.id.listView1);
+//
+//        List<Employee> employees = null;
+//        try {
+//            XMLPullParserHandler parser = new XMLPullParserHandler();
+//            InputStream is = getAssets().open("employees.xml");
+//            employees = parser.parse(is);
+//
+//            ArrayAdapter<Employee> adapter = new ArrayAdapter<Employee>(this, android.R.layout.simple_list_item_1, employees);
+//            listView.setAdapter(adapter);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.menu_main_custome, menu);
+//        return true;
+//    }
+//}
+
+//    TextView tv1;
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        tv1 = (TextView) findViewById(R.id.textView1);
+//        try {
+//            InputStream is = getAssets().open("file.xml");
+//
+//            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+//            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+//            Document doc = dBuilder.parse(is);
+//
+//            Element element = doc.getDocumentElement();
+//            element.normalize();
+//
+//            NodeList nList = doc.getElementsByTagName("employee");
+//            for (int i = 0; i < nList.getLength();i++) {
+//                Node node = nList.item(i);
+//
+//                if (node.getNodeType() == Node.ELEMENT_NODE){
+//                    Element element2 = (Element) node;
+//                    tv1.setText(tv1.getText()+"\nName: " + getValue("name",element2)+"\n");
+//                    tv1.setText(tv1.getText()+"\nSalary: " + getValue("salary",element2)+"\n");
+//                    tv1.setText(tv1.getText()+"---------------");
+//                }
+//            }
+//        } catch (IOException | ParserConfigurationException | SAXException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    private String getValue(String name, Element element) {
+//        NodeList nodeList = element.getElementsByTagName(name).item(0).getChildNodes();
+//        Node node = (Node) nodeList.item(0);
+//        return node.getNodeValue();
+//    }
+//}
 //        tv = (TextView) findViewById(R.id.textView1);
 //        try {
 //            SAXParserFactory factory = SAXParserFactory.newInstance();
