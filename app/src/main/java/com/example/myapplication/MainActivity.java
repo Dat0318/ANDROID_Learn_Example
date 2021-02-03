@@ -1,138 +1,1912 @@
 package com.example.myapplication;
 
-import android.Manifest;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 
-import androidx.annotation.RequiresApi;
-import androidx.core.content.ContextCompat;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+public class MainActivity extends AppCompatActivity {
 
+    private Button btn;
+    private ProgressBar progressBar;
+    private SeekBar seekBar;
 
-@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
-public class MainActivity extends Fragment implements OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
-
-    private GoogleMap mMap;
-    Location mLastLocation;
-    Marker mCurrLocationMarker;
-    GoogleApiClient mGoogleApiClient;
-    LocationRequest mLocationRequest;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-    }
-
-    private void setContentView(int activity_maps) {
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                buildGoogleApiClient();
-                mMap.setMyLocationEnabled(true);
-            }
-        }
-        else {
-            buildGoogleApiClient();
-            mMap.setMyLocationEnabled(true);
-        }
-
-    }
-    protected synchronized void buildGoogleApiClient() {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this);
-        builder.addConnectionCallbacks(this);
-        builder.addOnConnectionFailedListener(this);
-        builder.addApi(LocationServices.API);
-        mGoogleApiClient = builder.build();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        mLastLocation = location;
-        if (mCurrLocationMarker != null) {
-            mCurrLocationMarker.remove();
-        }
-        //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-        mCurrLocationMarker = mMap.addMarker(markerOptions);
-
-        //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
-
-        //stop location updates
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
-
-    public FragmentManager getSupportFragmentManager() {
-        FragmentManager supportFragmentManager;
-        supportFragmentManager = null;
-        return supportFragmentManager;
+        setContentView(R.layout.activity_main);
     }
 }
+
+//        btn = (Button) findViewById(R.id.button);
+//
+//        btn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent(MainActivity.this, MainActivity5.class);
+//                startActivity(intent);
+//            }
+//        });
+
+//        seekBar = (SeekBar) findViewById(R.id.seekBar);
+//
+//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+//
+//            }
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//        });
+
+//        btn = (Button)findViewById(R.id.button);
+//        progressBar = (ProgressBar) findViewById(R.id.progressBar3);
+//
+//        btn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                CountDownTimer countDownTimer = new CountDownTimer(10000, 500) {
+//                    @Override
+//                    public void onTick(long l) {
+//                        int current = progressBar.getProgress();
+//                        if (current >= progressBar.getMax()) {
+//                            current = 0;
+//                        }
+//                        progressBar.setProgress(current + 10);
+//                    }
+//
+//                    @Override
+//                    public void onFinish() {
+//                        this.start();
+//                        Toast.makeText(MainActivity.this, "Hết giờ", Toast.LENGTH_SHORT).show();
+//                    }
+//                };
+//                countDownTimer.start();
+//            }
+//        });
+//    }
+//}
+
+//import android.app.PendingIntent;
+//import android.appwidget.AppWidgetManager;
+//import android.appwidget.AppWidgetProvider;
+//import android.content.Context;
+//import android.content.Intent;
+//import android.net.Uri;
+//import android.widget.RemoteViews;
+//import android.widget.Toast;
+//
+//public class MainActivity extends AppWidgetProvider {
+//    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+//        for(int i=0; i<appWidgetIds.length; i++){
+//            int currentWidgetId = appWidgetIds[i];
+//            String url = "http://www.tutorialspoint.com";
+//
+//            Intent intent = new Intent(Intent.ACTION_VIEW);
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            intent.setData(Uri.parse(url));
+//
+//            PendingIntent pending = PendingIntent.getActivity(context, 0,intent, 0);
+//            RemoteViews views = new RemoteViews(context.getPackageName(),R.layout.activity_main);
+//
+//            views.setOnClickPendingIntent(R.id.button, pending);
+//            appWidgetManager.updateAppWidget(currentWidgetId,views);
+//            Toast.makeText(context, "widget added", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+//}
+
+//import android.app.Activity;
+//import android.os.Bundle;
+//import android.view.View;
+//import android.webkit.WebView;
+//import android.webkit.WebViewClient;
+//import android.widget.Button;
+//import android.widget.EditText;
+//
+////public class MainActivity extends Activity implements TextureView.SurfaceTextureListener {
+//public class MainActivity extends Activity {
+//
+//    Button b1;
+//    EditText ed1;
+//
+//    private WebView wv1;
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        b1 = (Button) findViewById(R.id.button);
+//        ed1 = (EditText) findViewById(R.id.editText);
+//
+//        wv1 = (WebView) findViewById(R.id.webView);
+//        wv1.setWebViewClient(new MyBrowser());
+//
+//        b1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                String url = ed1.getText().toString();
+//
+//                wv1.getSettings().setLoadsImagesAutomatically(true);
+//                wv1.getSettings().setJavaScriptEnabled(true);
+//                wv1.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+//                wv1.loadUrl(url);
+//            }
+//        });
+//    }
+//
+//    private class MyBrowser extends WebViewClient {
+//        @Override
+//        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//            view.loadUrl(url);
+//            return true;
+//        }
+//    }
+//}
+
+//    private TextureView myTexture;
+//    private Camera mCamera;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        myTexture = new TextureView(this);
+//        myTexture.setSurfaceTextureListener(this);
+//        setContentView(myTexture);
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.main, menu);
+//        return true;
+//    }
+//
+//    public MainActivity() {
+//    }
+//
+//    @Override
+//    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
+//
+//        mCamera = Camera.open();
+//        Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
+//
+//        myTexture.setLayoutParams(new FrameLayout.LayoutParams(
+//                previewSize.width, previewSize.height, Gravity.CENTER
+//        ));
+//
+//        try {
+//            mCamera.setPreviewTexture(surfaceTexture);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        mCamera.startPreview();
+//        myTexture.setAlpha(1.0f);
+//        myTexture.setRotation(90.0f);
+//    }
+//
+//    @Override
+//    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
+//
+//    }
+//
+//    @Override
+//    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+//        mCamera.stopPreview();
+//        mCamera.release();
+//        return true;
+//    }
+//
+//    @Override
+//    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+//
+//    }
+//}
+
+//import android.content.Intent;
+//import android.os.Bundle;
+//import android.view.KeyEvent;
+//import android.view.Menu;
+//import android.view.MenuItem;
+//import android.view.View;
+//import android.widget.AdapterView;
+//import android.widget.ArrayAdapter;
+//import android.widget.ListView;
+//
+//import androidx.annotation.NonNull;
+//import androidx.annotation.Nullable;
+//import androidx.appcompat.app.AppCompatActivity;
+//
+//import java.util.ArrayList;
+//
+//public class MainActivity extends AppCompatActivity {
+//    public final static String EXTRA_MESSAGE = "MESSAGE";
+//    private ListView obj;
+//    DBHelper mydb;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        mydb = new DBHelper(this);
+//        ArrayList array_list = mydb.getAllContacts();
+//        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, array_list);
+//
+//        obj = (ListView) findViewById(R.id.listView1);
+//        obj.setAdapter(arrayAdapter);
+//        obj.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+//                int id_to_search = i + 1;
+//                Bundle dataBundle = new Bundle();
+//                dataBundle.putInt("id", id_to_search);
+//                Intent intent = new Intent(getApplicationContext(), DisplayContact.class);
+//
+//                intent.putExtras(dataBundle);
+//                startActivity(intent);
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        super.onOptionsItemSelected(item);
+//        switch (item.getItemId()) {
+//            case R.id.item1:
+//                Bundle dataBundle = new Bundle();
+//                dataBundle.putInt("id", 0);
+//
+//                Intent intent = new Intent(getApplicationContext(), DisplayContact.class);
+//                intent.putExtras(dataBundle);
+//
+//                startActivity(intent);
+//                return true;
+//            default:
+//                return super.onOptionsItemSelected(item);
+//        }
+//
+//    }
+//
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            moveTaskToBack(true);
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
+//}
+
+//import android.content.Context;
+//import android.os.Bundle;
+//import android.view.View;
+//import android.view.textservice.SentenceSuggestionsInfo;
+//import android.view.textservice.SpellCheckerSession;
+//import android.view.textservice.SuggestionsInfo;
+//import android.view.textservice.TextInfo;
+//import android.view.textservice.TextServicesManager;
+//import android.widget.Button;
+//import android.widget.EditText;
+//import android.widget.TextView;
+//import android.widget.Toast;
+//
+//import androidx.annotation.Nullable;
+//import androidx.appcompat.app.AppCompatActivity;
+//
+//public class MainActivity extends AppCompatActivity implements SpellCheckerSession.SpellCheckerSessionListener {
+//
+//    Button b1;
+//    TextView tv1;
+//    EditText ed1;
+//    private SpellCheckerSession mScs;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        b1 = (Button) findViewById(R.id.button);
+//        tv1 = (TextView) findViewById(R.id.textView3);
+//
+//        ed1 = (EditText)findViewById(R.id.editText);
+//        b1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Toast.makeText(MainActivity.this, ed1.getText().toString(), Toast.LENGTH_SHORT).show();
+//                mScs.getSuggestions(new TextInfo(ed1.getText().toString()),3);
+//            }
+//        });
+//    }
+//
+//    public void onResume() {
+//        super.onResume();
+//        final TextServicesManager tsm = (TextServicesManager)getSystemService(Context.TEXT_SERVICES_MANAGER_SERVICE);
+//        mScs = tsm.newSpellCheckerSession(null, null, this, true);
+//    }
+//
+//    public void onPause() {
+//        super.onPause();
+//        if (mScs != null) {
+//            mScs.close();
+//        }
+//    }
+//
+//    @Override
+//    public void onGetSuggestions(SuggestionsInfo[] suggestionsInfos) {
+//        final StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i< suggestionsInfos.length; i ++ ) {
+//            final int len = suggestionsInfos[i].getSuggestionsCount();
+//            sb.append('\n');
+//            for (int j = 0; j < len; ++j) {
+//                sb.append(","+suggestionsInfos[i].getSuggestionAt(j));
+//            }
+//            sb.append(" (" + len + ")");
+//        }
+//
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                tv1.append(sb.toString());
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public void onGetSentenceSuggestions(SentenceSuggestionsInfo[] sentenceSuggestionsInfos) {
+//        // TODO
+//    }
+//}
+
+//    EditText ed1, ed2, ed3;
+//    Button b1;
+//    Intent in;
+//
+//    public static final String MyPREFERENCES = "MyPrefs";
+//    public static final String Name = "nameKey";
+//    public static final String Phone = "phonekey";
+//    public static final String Email = "emailKey";
+//    SharedPreferences sharedPreferences;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        ed1 = (EditText) findViewById(R.id.editText);
+//        ed2 = (EditText) findViewById(R.id.editText2);
+//        ed3 = (EditText) findViewById(R.id.editText3);
+//
+//        b1 = (Button) findViewById(R.id.button);
+//        sharedPreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+//
+//        b1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String n = ed1.getText().toString();
+//                String ph = ed2.getText().toString();
+//                String e = ed3.getText().toString();
+//
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+//
+//                editor.putString(Name, n);
+//                editor.putString(Phone, ph);
+//                editor.putString(Email, e);
+//                editor.commit();
+//
+//                in = new Intent(MainActivity.this, second_main.class);
+//                startActivity(in);
+//            }
+//        });
+//    }
+//}
+
+//    private TextView tv1 = null;
+//    private SensorManager mSensorManager;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        tv1 = (TextView) findViewById(R.id.textView2);
+//        tv1.setVisibility(View.GONE);
+//
+//        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+//        List<Sensor> mList = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+//
+//        for (int i = 1; i< mList.size(); i++) {
+//            tv1.setVisibility(View.VISIBLE);
+//            tv1.append("\n" + mList.get(i).getName() + "\n" + mList.get(i).getVendor() + "\n" + mList.get(i).getVersion());
+//        }
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        int id = item.getItemId();
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
+//}
+
+//    EditText ed1, ed2, ed3;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        ed1 = (EditText) findViewById(R.id.editText);
+//        ed2 = (EditText) findViewById(R.id.editText2);
+//        ed3 = (EditText) findViewById(R.id.editText3);
+//
+//        Button b1 = (Button) findViewById(R.id.button);
+//
+//        b1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String title = ed1.getText().toString().trim();
+//                String subject = ed2.getText().toString().trim();
+//                String body = ed3.getText().toString().trim();
+//
+//                NotificationManager notif = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//                Notification notify = new Notification.Builder(getApplicationContext())
+//                        .setContentTitle(title)
+//                        .setContentText(body)
+//                        .setContentTitle(subject)
+//                        .setSmallIcon(R.drawable.ic_action)
+//                        .build();
+//
+//                notify.flags |= Notification.FLAG_AUTO_CANCEL;
+//                notif.notify(0, notify);
+//            }
+//        });
+//    }
+//}
+
+
+//    private static final String TAG = "MainActivity";
+//    Button b1;
+//    private ProgressDialog progress;
+//    private int jumpTime = 0;
+//
+//
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        b1 = (Button) findViewById(R.id.button2);
+//    }
+//
+//    public void download(View view) {
+//        progress = new ProgressDialog(this);
+//        progress.setMessage("Downloading Music");
+//        progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+//        progress.setIndeterminate(true);
+////        progress.setProgress(0);
+//        progress.setProgress(50);
+//        progress.show();
+//        progress.onStart();
+//
+//        final int totalProgressTime = 100;
+//        final Thread t = new Thread() {
+//            @Override
+//            public void run() {
+//
+//                while (jumpTime < totalProgressTime) {
+//                    try {
+//                        sleep(200);
+//                        jumpTime = jumpTime + 10;
+//                        progress.setProgress(jumpTime);
+//                    } catch (InterruptedException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        };
+//        t.start();
+//    }
+
+//    Button b1;
+//    private ProgressBar spinner;
+
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+
+//        b1=(Button)findViewById(R.id.button);
+//        spinner=(ProgressBar)findViewById(R.id.progressBar);
+//        spinner.setVisibility(View.GONE);
+//
+//        b1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                spinner.setVisibility(View.VISIBLE);
+//            }
+//        });
+//    }
+
+//    private String TAG = MainActivity.class.getSimpleName();
+//    private ListView lv;
+//
+//    ArrayList<HashMap<String, String>> contactList;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        contactList = new ArrayList<>();
+//        lv = (ListView) findViewById(R.id.list);
+//
+//        new GetContacts().execute();
+//    }
+//
+//    private class GetContacts extends AsyncTask<Void, Void, Void> {
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//            Toast.makeText(MainActivity.this, "Json Data is loading", Toast.LENGTH_SHORT).show();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Void... voids) {
+//            HttpHandler sh = new HttpHandler();
+//            String url = "https://api.androidhive.info/contacts/";
+//            String jsonStr = sh.makeServiceCall(url);
+//
+//            Log.e(TAG, "Response from url " + jsonStr);
+//            if (jsonStr != null) {
+//                try {
+//                    JSONObject jsonObj= new JSONObject(jsonStr);
+//
+//                    JSONArray contacts = jsonObj.getJSONArray("contacts");
+//
+//                    for (int i = 0; i< contacts.length(); i ++) {
+//                        JSONObject c = contacts.getJSONObject(i);
+//                        String id = c.getString("id");
+//                        String name = c.getString("name");
+//                        String email = c.getString("email");
+//                        String address = c.getString("address");
+//                        String gender = c.getString("gender");
+//
+//                        JSONObject phone = c.getJSONObject("phone");
+//                        String mobile = phone.getString("mobile");
+//                        String home = phone.getString("home");
+//                        String office = phone.getString("office");
+//
+//                        HashMap<String, String> contact = new HashMap<>();
+//
+//                        contact.put("id", id);
+//                        contact.put("name", name);
+//                        contact.put("email", email);
+//                        contact.put("mobile", mobile);
+//
+//                        contactList.add(contact);
+//                    }
+//                } catch (JSONException e) {
+//                    Log.e(TAG, "Json parsing error: " + e.getMessage());
+//
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            Toast.makeText(MainActivity.this, "Json parsing error: ", Toast.LENGTH_SHORT).show();
+//                        }
+//                    });
+//                    e.printStackTrace();
+//                }
+//            } else {
+//                Log.e(TAG, "Couldn't get json from server.");
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Toast.makeText(MainActivity.this, "Couldn't get json from server. Check LogCat for possible error!", Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//
+//            ListAdapter adapter = new SimpleAdapter(MainActivity.this, contactList, R.layout.list_item, new String[]{"email", "mobile"}, new int[]{R.id.email, R.id.mobile});
+//            lv.setAdapter(adapter);
+//        }
+//    }
+
+//    EditText ed1, ed2;
+//    Button b1, b2;
+//
+//    private ClipboardManager myClipboard;
+//    private ClipData myClip;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        ed1 = (EditText) findViewById(R.id.editText);
+//        ed2 = (EditText) findViewById(R.id.editText2);
+//
+//        b1 = (Button) findViewById(R.id.button);
+//        b2 = (Button) findViewById(R.id.button2);
+//
+//        myClipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+//
+//        b1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String text;
+//                text = ed1.getText().toString();
+//
+//                myClip = ClipData.newPlainText("text", text);
+//                myClipboard.setPrimaryClip(myClip);
+//
+//                Toast.makeText(MainActivity.this, "Text Copied", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+//        b2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                ClipData abc = myClipboard.getPrimaryClip();
+//                ClipData.Item item = abc.getItemAt(0);
+//
+//                String text = item.getText().toString();
+//                ed2.setText(text);
+//
+//                Toast.makeText(MainActivity.this, "Text Pasted", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
+//}
+
+//import android.Manifest;
+//import android.content.Context;
+//import android.content.DialogInterface;
+//import android.content.Intent;
+//import android.content.SharedPreferences;
+//import android.content.pm.PackageManager;
+//import android.net.Uri;
+//import android.os.Bundle;
+//import android.provider.Settings;
+//
+//import androidx.annotation.NonNull;
+//import androidx.annotation.Nullable;
+//import androidx.appcompat.app.AlertDialog;
+//import androidx.appcompat.app.AppCompatActivity;
+//import androidx.core.app.ActivityCompat;
+//import androidx.core.content.ContextCompat;
+//
+//public class MainActivity extends AppCompatActivity {
+//    public static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
+//    public static final String ALLOW_KEY = "ALLOWED";
+//    public static final String CAMERA_PREF = "camera_pref";
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+//            if (getFromPref(this, ALLOW_KEY)) {
+//                showSettingAlert();
+//            } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+//                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+//                    showAlert();
+//                } else {
+//                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
+//                }
+//            }
+//        } else {
+//            openCamera();
+//        }
+//    }
+//
+//    private void openCamera() {
+//        Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+//        startActivity(intent);
+//    }
+//
+//    private void showAlert() {
+//        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+//        alertDialog.setTitle("Alert");
+//        alertDialog.setMessage("App needs to access the camera");
+//
+//        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "DONT ALLOW",
+//                new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialogInterface, int i) {
+//                        dialogInterface.dismiss();
+//                        finish();
+//                    }
+//                });
+//
+//        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "ALLOW",
+//                new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialogInterface, int i) {
+//                        dialogInterface.dismiss();
+//                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
+//                    }
+//                });
+//        alertDialog.show();
+//    }
+//
+//    private void showSettingAlert() {
+//        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+//        alertDialog.setTitle("Alert");
+//        alertDialog.setMessage("App needs to access the camera");
+//
+//        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "DONT ALLOW",
+//                new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialogInterface, int i) {
+//                        dialogInterface.dismiss();
+//                    }
+//                });
+//
+//        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "SETTINGS",
+//                new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialogInterface, int i) {
+//                        dialogInterface.dismiss();
+//                        ;
+//                        startInstalledAppDetailsActivity(MainActivity.this);
+//                    }
+//                });
+//
+//        alertDialog.show();
+//    }
+//
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        switch (requestCode) {
+//            case MY_PERMISSIONS_REQUEST_CAMERA: {
+//                for (int i = 0, len = permissions.length; i < len; i++) {
+//                    String permission = permissions[i];
+//                    if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+//                        boolean showRationale = ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
+//                        if (showRationale) {
+//                            showAlert();
+//                        } else if (!showRationale) {
+//                            saveToPreferences(MainActivity.this, ALLOW_KEY, true);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//    }
+//
+//    private void saveToPreferences(Context context, String allowKey, boolean b) {
+//        SharedPreferences myPrefs = context.getSharedPreferences(CAMERA_PREF, Context.MODE_PRIVATE);
+//
+//        SharedPreferences.Editor prefsEditor = myPrefs.edit();
+//        prefsEditor.putBoolean(allowKey, b);
+//        prefsEditor.commit();
+//    }
+//
+//    private void startInstalledAppDetailsActivity(final Context context) {
+//        if (context == null) {
+//            return;
+//        }
+//
+//        final Intent i = new Intent();
+//        i.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+//        i.addCategory(Intent.CATEGORY_DEFAULT);
+//        i.setData(Uri.parse("package: " + context.getPackageName()));
+//        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+//        i.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+//        context.startActivity(i);
+//    }
+//
+//    private boolean getFromPref(Context context, String allowKey) {
+//        SharedPreferences myPrefs = context.getSharedPreferences(CAMERA_PREF, Context.MODE_PRIVATE);
+//        return (myPrefs.getBoolean(allowKey, false));
+//    }
+//}
+
+//public class MainActivity extends Activity {
+//    Button mode, ring, vibrate, slient;
+//    private AudioManager myAudioManager;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        vibrate = (Button) findViewById(R.id.button3);
+//        ring = (Button) findViewById(R.id.button2);
+//
+//        mode = (Button) findViewById(R.id.button);
+//        slient = (Button) findViewById(R.id.button4);
+//        myAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+//
+//        vibrate.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                myAudioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+//                Toast.makeText(MainActivity.this, "Now in Vibrate Mode", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+//        ring.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                myAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+//                Toast.makeText(MainActivity.this, "Now is Ringing Mode", Toast.LENGTH_LONG).show();
+//            }
+//        });
+//
+//        slient.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                myAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+//                Toast.makeText(MainActivity.this, "Now in silent Mode",
+//                        Toast.LENGTH_LONG).show();
+//            }
+//        });
+//
+//        mode.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                int mod = myAudioManager.getRingerMode();
+//                if (mod == AudioManager.RINGER_MODE_VIBRATE) {
+//                    Toast.makeText(MainActivity.this, "Now in Vibrate Mode",
+//                            Toast.LENGTH_LONG).show();
+//                } else if (mod == AudioManager.RINGER_MODE_NORMAL) {
+//                    Toast.makeText(MainActivity.this, "Now in Ringing Mode",
+//                            Toast.LENGTH_LONG).show();
+//                } else {
+//                    Toast.makeText(MainActivity.this, "Now in Vibrate Mode",
+//                            Toast.LENGTH_LONG).show();
+//                }
+//            }
+//        });
+//    }
+//}
+
+//    Button buttonStart, buttonStop, buttonPlayLastRecordAudio, buttonStopPlayingRecording;
+//    String AudioSavePathInDevice = null;
+//    MediaRecorder mediaRecorder;
+//    Random random;
+//    String RandomAudioFilename = "ABCDEFGHIJKLMNOP";
+//    public static final int RequestPermissioCode = 1;
+//    MediaPlayer mediaPlayer;
+//    private static final String TAG = "MainActivity";
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        buttonStart = (Button) findViewById(R.id.button);
+//        buttonStop = (Button) findViewById(R.id.button2);
+//        buttonPlayLastRecordAudio = (Button) findViewById(R.id.button3);
+//        buttonStopPlayingRecording = (Button) findViewById(R.id.button4);
+//
+//        buttonStop.setEnabled(false);
+//        buttonStopPlayingRecording.setEnabled(false);
+//        buttonPlayLastRecordAudio.setEnabled(false);
+//
+//        random = new Random();
+//
+//        buttonStart.setOnClickListener(new View.OnClickListener() {
+//            @RequiresApi(api = Build.VERSION_CODES.M)
+//            @Override
+//            public void onClick(View view) {
+//                if (checkPermission()) {
+//                    AudioSavePathInDevice = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" +
+//                            CreateRandomAudioFileName(5) + "AudioRecording.3gp";
+//                    MediaRecorderReady();
+
+//                    try {
+//                        mediaRecorder.prepare();
+//                        mediaRecorder.start();
+//                        Toast.makeText(MainActivity.this, "Start", Toast.LENGTH_SHORT).show();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+
+//                    try {
+//                        mediaRecorder.prepare();
+//                        mediaRecorder.start();
+//                        Toast.makeText(MainActivity.this, "prepare Start", Toast.LENGTH_SHORT).show();
+//                        buttonStart.setEnabled(false);
+//                        buttonStop.setEnabled(true);
+//                    } catch (IOException e) {
+//                        Log.e(TAG, "onClick: " + e);
+//                        e.printStackTrace();
+//                    }
+//
+////                    Toast.makeText(MainActivity.this, "Recording started", Toast.LENGTH_SHORT).show();
+//                } else {
+//                    requestPermissions();
+//                }
+//            }
+//        });
+//
+//        buttonStop.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                mediaRecorder.stop();
+//                buttonStop.setEnabled(false);
+//                buttonPlayLastRecordAudio.setEnabled(true);
+//                buttonStart.setEnabled(true);
+//                buttonStopPlayingRecording.setEnabled(false);
+//
+//                Toast.makeText(MainActivity.this, "Recording Completed", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+//        buttonPlayLastRecordAudio.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                buttonStop.setEnabled(false);
+//                buttonStart.setEnabled(false);
+//                buttonStopPlayingRecording.setEnabled(true);
+//
+//                mediaPlayer = new MediaPlayer();
+//                try {
+//                    mediaPlayer.setDataSource(AudioSavePathInDevice);
+//                    mediaPlayer.prepare();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                mediaPlayer.start();
+//                Toast.makeText(MainActivity.this, "Recording Playing", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+//        buttonStopPlayingRecording.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                buttonStop.setEnabled(false);
+//                buttonStart.setEnabled(true);
+//                buttonStopPlayingRecording.setEnabled(false);
+//                buttonPlayLastRecordAudio.setEnabled(true);
+//
+//                if (mediaPlayer != null) {
+//                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+//                    MediaRecorderReady();
+//                }
+//            }
+//        });
+//    }
+//
+//    private void requestPermissions() {
+//        ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE, RECORD_AUDIO}, RequestPermissioCode);
+//    }
+//
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        switch (requestCode) {
+//            case RequestPermissioCode:
+//                if (grantResults.length > 0) {
+//                    boolean StoragePermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+//                    boolean RecordPermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+//
+//                    if (StoragePermission && RecordPermission) {
+//                        Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+//                    } else {
+//                        Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    private boolean checkPermission() {
+//        int result = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
+//        int result1 = ContextCompat.checkSelfPermission(getApplicationContext(), RECORD_AUDIO);
+//        return result == PackageManager.PERMISSION_GRANTED && result1 == PackageManager.PERMISSION_GRANTED;
+//
+//    }
+//
+//    private String CreateRandomAudioFileName(int number) {
+//        StringBuilder stringBuilder = new StringBuilder(number);
+//        int i = 0;
+//        while (i < number) {
+//            stringBuilder.append(RandomAudioFilename.charAt(random.nextInt(RandomAudioFilename.length())));
+//
+//            i++;
+//        }
+//        return stringBuilder.toString();
+//    }
+//
+//    private void MediaRecorderReady() {
+//        mediaRecorder = new MediaRecorder();
+//        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+//        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+//        mediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+//        mediaRecorder.setOutputFile(AudioSavePathInDevice);
+//    }
+//}
+
+
+//    public void clockwise(View view){
+//        ImageView image = (ImageView)findViewById(R.id.imageView);
+//        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(),
+//                R.anim.myanimation);
+//        image.startAnimation(animation);
+//    }
+//
+//    public void zoom(View view){
+//        ImageView image = (ImageView)findViewById(R.id.imageView);
+//        Animation animation1 = AnimationUtils.loadAnimation(getApplicationContext(),
+//                R.anim.clockwise);
+//        image.startAnimation(animation1);
+//    }
+//
+//    public void fade(View view){
+//        ImageView image = (ImageView)findViewById(R.id.imageView);
+//        Animation animation1 =
+//                AnimationUtils.loadAnimation(getApplicationContext(),
+//                        R.anim.fade);
+//        image.startAnimation(animation1);
+//    }
+//
+//    public void blink(View view){
+//        ImageView image = (ImageView)findViewById(R.id.imageView);
+//        Animation animation1 =
+//                AnimationUtils.loadAnimation(getApplicationContext(),
+//                        R.anim.blink);
+//        image.startAnimation(animation1);
+//    }
+//
+//    public void move(View view){
+//        ImageView image = (ImageView)findViewById(R.id.imageView);
+//        Animation animation1 =
+//                AnimationUtils.loadAnimation(getApplicationContext(), R.anim.move);
+//        image.startAnimation(animation1);
+//    }
+//
+//    public void slide(View view){
+//        ImageView image = (ImageView)findViewById(R.id.imageView);
+//        Animation animation1 =
+//                AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide);
+//        image.startAnimation(animation1);
+//    }
+//}
+
+//    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
+//    Button btnShowLocation;
+//    private static final int REQUEST_CODE_PERMISSION = 2;
+//    String mPermission = Manifest.permission.ACCESS_FINE_LOCATION;
+//
+//    GPSTracker gps;
+//    private String phoneNo, message;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        try {
+//            if (ActivityCompat.checkSelfPermission(this, mPermission) != PackageManager.PERMISSION_GRANTED) {
+//                ActivityCompat.requestPermissions(this, new String[]{mPermission}, REQUEST_CODE_PERMISSION);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        btnShowLocation = (Button) findViewById(R.id.button);
+//
+//        btnShowLocation.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                gps = new GPSTracker(MainActivity.this);
+
+//                if (gps.canGetLocation()) {
+//                    double latitude = gps.getLatitude();
+//                    double longtitude = gps.getLongitude();
+//                    Toast.makeText(MainActivity.this, "Your Location is - \nLat: " + latitude + "\nLong: " + longtitude, Toast.LENGTH_SHORT).show();
+//                } else {
+//                    gps.showSettingsAlert();
+//                }
+//                sendEmail();
+//                sendSMSMessage();
+
+//                Intent callIntent = new Intent(Intent.ACTION_CALL);
+//                callIntent.setData(Uri.parse("tel:0986419381"));
+//
+//                if (ActivityCompat.checkSelfPermission(MainActivity.this,
+//                        Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+//                    return;
+//                }
+//                startActivity(callIntent);
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        switch (requestCode) {
+//            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    SmsManager smsManager = SmsManager.getDefault();
+//                    smsManager.sendTextMessage(phoneNo, null, message, null, null);
+//                    Toast.makeText(getApplicationContext(), "SMS sent.",
+//                            Toast.LENGTH_LONG).show();
+//                } else {
+//                    Toast.makeText(getApplicationContext(),
+//                            "SMS faild, please try again.", Toast.LENGTH_LONG).show();
+//                    return;
+//                }
+//            }
+//            break;
+//            case REQUEST_CODE_PERMISSION:
+//                Toast.makeText(getBaseContext(), "run now", Toast.LENGTH_SHORT).show();
+//                break;
+//        }
+//    }
+//
+//    private void sendSMSMessage() {
+////        phoneNo = txtphoneNo.getText().toString();
+////        message = txtMessage.getText().toString();
+//        phoneNo = "0986419381";
+//        message = "test message to send";
+//
+//        if (ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.SEND_SMS)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+//                    Manifest.permission.SEND_SMS)) {
+//            } else {
+//                ActivityCompat.requestPermissions(this,
+//                        new String[]{Manifest.permission.SEND_SMS},
+//                        MY_PERMISSIONS_REQUEST_SEND_SMS);
+//            }
+//        }
+//    }
+//
+//    private void sendEmail() {
+//        Log.i("Send email", "");
+//        String[] TO = {""};
+//        String[] CC = {""};
+//        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+//
+//        emailIntent.setData(Uri.parse("mailto:"));
+//        emailIntent.setType("text/plain");
+//        emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
+//        emailIntent.putExtra(Intent.EXTRA_CC, CC);
+//        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Your subject");
+//        emailIntent.putExtra(Intent.EXTRA_TEXT, "Email message goes here");
+//
+//        try {
+//            startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+//            finish();
+//            Log.i("INFOR", "Finished sending email...");
+//        } catch (android.content.ActivityNotFoundException ex) {
+//            Toast.makeText(MainActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+//}
+//    Button b1;
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+//                .setSmallIcon(R.drawable.ic_action)
+//                .setContentTitle("textTitle")
+//                .setContentText("textContent")
+//                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+//        Intent notificationIntent = new Intent(this, MainActivity.class);
+//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+//                PendingIntent.FLAG_UPDATE_CURRENT);
+//        builder.setContentIntent(contentIntent);
+//
+//        // Add as notification
+//        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//        manager.notify(0, builder.build());
+//
+//        b1 = (Button)findViewById(R.id.button);
+//        b1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                addNotification();
+//            }
+//        });
+//    }
+//
+//    private void addNotification() {
+//        Toast.makeText(this, "Click here", Toast.LENGTH_SHORT).show();
+//        NotificationCompat.Builder builder =
+//                new NotificationCompat.Builder(this)
+//                        .setSmallIcon(R.drawable.ic_action)
+//                        .setContentTitle("Notifications Example")
+//                        .setContentText("This is a test notification");
+//
+//        Intent notificationIntent = new Intent(this, MainActivity.class);
+//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+//                PendingIntent.FLAG_UPDATE_CURRENT);
+//        builder.setContentIntent(contentIntent);
+//
+//        // Add as notification
+//        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//        manager.notify(0, builder.build());
+//    }
+
+//    protected void displayNotification() {
+//        Log.i("Start", "notification");
+//
+//        /* Invoking the default notification service */
+//        NotificationCompat.Builder  mBuilder = new NotificationCompat.Builder(this);
+//
+//        mBuilder.setContentTitle("New Message");
+//        mBuilder.setContentText("You've received new message.");
+//        mBuilder.setTicker("New Message Alert!");
+//        mBuilder.setSmallIcon(R.drawable.ic_avatar1 void displayNotification() {
+//            Log.i("Start", "notification");
+//
+//            NotificationCompat.Builder  mBuilder = new NotificationCompat.Builder(this);
+//
+//            mBuilder.setContentTitle("New Message");
+//            mBuilder.setContentText("You've received new message.");
+//            mBuilder.setTicker("New Message Alert!");
+//            mBuilder.setSmallIcon(R.drawable.ic_avatar1);
+//
+//            mBuilder.setNumber(++numMessages);
+//
+//            NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+//
+//            String[] events = new String[6];
+//            events[0] = new String("This is first line....");
+//            events[1] = new String("This is second line...");
+//            events[2] = new String("This is third line...");
+//            events[3] = new String("This is 4th line...");
+//            events[4] = new String("This is 5th line...");
+//            events[5] = new String("This is 6th line...");
+//
+//            inboxStyle.setBigContentTitle("Big Title Details:");
+//
+//            for (int i=0; i < events.length; i++) {
+//                inboxStyle.addLine(events[i]);
+//            }
+//            mBuilder.setStyle(inboxStyle);
+//            Intent resultIntent = new Intent(this, NotificationView.class);
+//
+//            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+//            stackBuilder.addParentStack(NotificationView.class);
+//            stackBuilder.addNextIntent(resultIntent);
+//            PendingIntent resultPendingIntent =stackBuilder.getPendingIntent(0,PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//            mBuilder.setContentIntent(resultPendingIntent);
+//            mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//            mNotificationManager.notify(notificationID, mBuilder.build());
+//        });
+//
+//        /* Increase notification number every time a new notification arrives */
+//        mBuilder.setNumber(++numMessages);
+//
+//        /* Add Big View Specific Configuration */
+//        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+//
+//        String[] events = new String[6];
+//        events[0] = new String("This is first line....");
+//        events[1] = new String("This is second line...");
+//        events[2] = new String("This is third line...");
+//        events[3] = new String("This is 4th line...");
+//        events[4] = new String("This is 5th line...");
+//        events[5] = new String("This is 6th line...");
+//
+//        // Sets a title for the Inbox style big view
+//        inboxStyle.setBigContentTitle("Big Title Details:");
+//
+//        // Moves events into the big view
+//        for (int i=0; i < events.length; i++) {
+//            inboxStyle.addLine(events[i]);
+//        }
+//
+//        mBuilder.setStyle(inboxStyle);
+//
+//        /* Creates an explicit intent for an Activity in your app */
+//        Intent resultIntent = new Intent(this, NotificationView.class);
+//
+//        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+//        stackBuilder.addParentStack(NotificationView.class);
+//
+//        /* Adds the Intent that starts the Activity to the top of the stack */
+//        stackBuilder.addNextIntent(resultIntent);
+//        PendingIntent resultPendingIntent =stackBuilder.getPendingIntent(0,PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//        mBuilder.setContentIntent(resultPendingIntent);
+//        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//
+//        /* notificationID allows you to update the notification later on. */
+//        mNotificationManager.notify(notificationID, mBuilder.build());
+//    }
+//}
+
+//public class MainActivity extends Activity {
+//    ImageView img;
+//    String msg;
+//    private android.widget.RelativeLayout.LayoutParams layoutParams;
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        img=(ImageView)findViewById(R.id.imageView);
+//
+//        img.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                ClipData.Item item = new ClipData.Item((CharSequence)v.getTag());
+//                String[] mimeTypes = {ClipDescription.MIMETYPE_TEXT_PLAIN};
+//
+//                ClipData dragData = new ClipData(v.getTag().toString(),mimeTypes, item);
+//                View.DragShadowBuilder myShadow = new View.DragShadowBuilder(img);
+//
+//                v.startDrag(dragData,myShadow,null,0);
+//                return true;
+//            }
+//        });
+//
+//        img.setOnDragListener(new View.OnDragListener() {
+//            @Override
+//            public boolean onDrag(View v, DragEvent event) {
+//                switch(event.getAction()) {
+//                    case DragEvent.ACTION_DRAG_STARTED:
+//                        layoutParams = (RelativeLayout.LayoutParams)v.getLayoutParams();
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_STARTED");
+//
+//                        // Do nothing
+//                        break;
+//
+//                    case DragEvent.ACTION_DRAG_ENTERED:
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_ENTERED");
+//                        int x_cord = (int) event.getX();
+//                        int y_cord = (int) event.getY();
+//                        break;
+//
+//                    case DragEvent.ACTION_DRAG_EXITED :
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_EXITED");
+//                        x_cord = (int) event.getX();
+//                        y_cord = (int) event.getY();
+//                        layoutParams.leftMargin = x_cord;
+//                        layoutParams.topMargin = y_cord;
+//                        v.setLayoutParams(layoutParams);
+//                        break;
+//
+//                    case DragEvent.ACTION_DRAG_LOCATION  :
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_LOCATION");
+//                        x_cord = (int) event.getX();
+//                        y_cord = (int) event.getY();
+//                        break;
+//
+//                    case DragEvent.ACTION_DRAG_ENDED   :
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_ENDED");
+//
+//                        // Do nothing
+//                        break;
+//
+//                    case DragEvent.ACTION_DROP:
+//                        Log.d(msg, "ACTION_DROP event");
+//
+//                        // Do nothing
+//                        break;
+//                    default: break;
+//                }
+//                return true;
+//            }
+//        });
+//
+//        img.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//                    ClipData data = ClipData.newPlainText("", "");
+//                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(img);
+//
+//                    img.startDrag(data, shadowBuilder, img, 0);
+//                    img.setVisibility(View.INVISIBLE);
+//                    return true;
+//                } else {
+//                    return false;
+//                }
+//            }
+//        });
+//    }
+//}
+
+//public class MainActivity extends Activity {
+//    ImageView img;
+//    String msg;
+//    private RelativeLayout.LayoutParams layoutParams;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        img = (ImageView) findViewById(R.id.imageView);
+//
+//        img.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View view) {
+//                ClipData.Item item = new ClipData.Item((CharSequence) view.getTag());
+//                String[] mimeTypes = {ClipDescription.MIMETYPE_TEXT_PLAIN};
+//
+//                ClipData dragData = new ClipData(view.getTag().toString(), mimeTypes, item);
+//                View.DragShadowBuilder myShadow = new View.DragShadowBuilder(img);
+//
+//                view.startDrag(dragData, myShadow, null, 0);
+//                return true;
+//            }
+//        });
+//
+//        img.setOnDragListener(new View.OnDragListener() {
+//            @Override
+//            public boolean onDrag(View view, DragEvent dragEvent) {
+//                switch (dragEvent.getAction()) {
+//                    case DragEvent.ACTION_DRAG_STARTED:
+//                        layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_STARTED");
+//                        break;
+//                    case DragEvent.ACTION_DRAG_ENTERED:
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_ENTERED");
+//                        int x_cord = (int) dragEvent.getX();
+//                        int y_cord = (int) dragEvent.getY();
+//                        break;
+//                    case DragEvent.ACTION_DRAG_EXITED:
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_EXITED");
+//                        x_cord = (int) dragEvent.getX();
+//                        y_cord = (int) dragEvent.getY();
+//                        layoutParams.leftMargin = x_cord;
+//                        layoutParams.topMargin = y_cord;
+//                        view.setLayoutParams(layoutParams);
+//                        break;
+//
+//                    case DragEvent.ACTION_DRAG_LOCATION:
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_LOCATION");
+//                        x_cord = (int) dragEvent.getX();
+//                        y_cord = (int) dragEvent.getY();
+//                        break;
+//
+//                    case DragEvent.ACTION_DRAG_ENDED:
+//                        Log.d(msg, "Action is DragEvent.ACTION_DRAG_ENDED");
+//
+//                        // Do nothing
+//                        break;
+//
+//                    case DragEvent.ACTION_DROP:
+//                        Log.d(msg, "ACTION_DROP event");
+//
+//                        // Do nothing
+//                        break;
+//                    default:
+//                        break;
+//                }
+//                return true;
+//            }
+//        });
+
+//        img.setOnDragListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent motionEvent) {
+//                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+//                    ClipData data = ClipData.newPlainText("", "");
+//                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(img);
+//                    img.startDrag(data, shadowBuilder, img, 0);
+//                    img.setVisibility(View.INVISIBLE);
+//                    return true;
+//                } else {
+//                    return false;
+//                }
+//            }
+//        });
+
+//        img.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//                    ClipData data = ClipData.newPlainText("", "");
+//                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(img);
+//
+//                    img.startDrag(data, shadowBuilder, img, 0);
+//                    img.setVisibility(View.INVISIBLE);
+//                    return true;
+//                } else {
+//                    return false;
+//                }
+//            }
+//        });
+//
+//    }
+//}
+
+//public class MainActivity extends AppCompatActivity {
+//    Button b1,b2,b3;
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        b1=(Button)findViewById(R.id.button);
+//        b1.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                Intent i = new Intent(android.content.Intent.ACTION_VIEW,
+//                        Uri.parse("http://www.example.com"));
+//                startActivity(i);
+//            }
+//        });
+//
+//        b2 = (Button)findViewById(R.id.button2);
+//        b2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent i = new Intent("com.example.myapplication.LAUNCH",Uri.parse("https://www.tutorialspoint.com/android/android_intents_filters.htm"));
+//                startActivity(i);
+//            }
+//        });
+//
+//        b3 = (Button)findViewById(R.id.button3);
+//        b3.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent i = new Intent("com.example.myapplication.LAUNCH",
+//                        Uri.parse("https://www.tutorialspoint.com/android/android_intents_filters.htm"));
+//                startActivity(i);
+//            }
+//        });
+//    }
+//}
+
+//    private CheckBox checkBoxHarry, checkBoxMattrix, chekCheckBoxJoker;
+//    private Button b1, b2;
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        b1 = (Button) findViewById(R.id.button);
+//        b1.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                Intent i = new Intent(android.content.Intent.ACTION_VIEW,
+//                        Uri.parse("http://www.example.com"));
+//                startActivity(i);
+//            }
+//        });
+//
+//        b2 = (Button) findViewById(R.id.button2);
+//        b2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent i = new Intent(android.content.Intent.ACTION_VIEW,
+//                        Uri.parse("tel:9510300000"));
+//                startActivity(i);
+//            }
+//        });
+//    }
+
+//    public void startService(View view) {
+//        startService(new Intent(getBaseContext(), MyServices.class));
+//    }
+//
+//    public void stopService(View view) {
+//        stopService(new Intent(getBaseContext(), MyServices.class));
+//    }
+
+//    public void broadcastIntent(View view) {
+//        Intent intent = new Intent();
+//        intent.setAction("com.myapplication.CUSTOM_INTENT");
+//        sendBroadcast(intent);
+//        Intent email = new Intent(Intent.ACTION_SEND, Uri.parse("mailto:"));
+//        email.putExtra(Intent.EXTRA_EMAIL, "recipients");
+//        email.putExtra(Intent.EXTRA_SUBJECT, "subject.getText().toString()");
+//        email.putExtra(Intent.EXTRA_TEXT, "body.getText().toString()");
+//        startActivity(Intent.createChooser(email, "Choose an email client from..."));
+//        Intent read1 = new Intent();
+//        read1.setAction(android.content.Intent.ACTION_VIEW);
+//        read1.setData(ContactsContract.Contacts.CONTENT_URI);
+//        startActivity(read1);
+//    }
+//}
+
+//        checkBoxHarry = findViewById(R.id.checkboxHarry);
+//        checkBoxMattrix = findViewById(R.id.checkboxMattrix);
+//        chekCheckBoxJoker = findViewById(R.id.checkboxJoker);
+//
+//        if (checkBoxHarry.isChecked()) {
+//            Toast.makeText(MainActivity.this, "You have watched Harry check box, yet", Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(MainActivity.this, "You need to watch Harry Potter", Toast.LENGTH_SHORT).show();
+//        }
+//
+//        checkBoxHarry.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+//                if (b) {
+//                    Toast.makeText(MainActivity.this, "You have watched Harry check box, yet", Toast.LENGTH_SHORT).show();
+//                } else {
+//                    Toast.makeText(MainActivity.this, "You need to watch Harry Potter", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+//    }
+//}
+
+//import android.content.Intent;
+//import android.os.Bundle;
+//import android.view.View;
+//import android.widget.Button;
+//
+//import androidx.annotation.Nullable;
+//import androidx.appcompat.app.AppCompatActivity;
+//
+//import java.util.ArrayList;
+//
+//public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+//    Button btnScanBarCode;
+//    ArrayList<String> rssLinks = new ArrayList<>();
+//
+//    @Override
+//    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        Button btnRediff = findViewById(R.id.btnRediff);
+//        Button btnCinemaBlend = findViewById(R.id.btnCinemaBlend);
+//        btnRediff.setOnClickListener(this);
+//        btnCinemaBlend.setOnClickListener(this);
+//        rssLinks.add("http://www.rediff.com/rss/moviesreviewsrss.xml");
+//        rssLinks.add("http://www.cinemablend.com/rss_review.php");
+//
+//
+//
+////        btnScanBarCode = findViewById(R.id.btnScanBarcode);
+////
+////        btnScanBarCode.setOnClickListener(new View.OnClickListener() {
+////            @Override
+////            public void onClick(View view) {
+////                startActivity(new Intent(MainActivity.this, ScannedBarcodeActivity.class));
+////            }
+////        });
+//    }
+//
+//    @Override
+//    public void onClick(View view) {
+//        Intent intent = new Intent(getApplicationContext(), RSSFeedActivity.class);
+//        switch (view.getId()){
+//            case R.id.btnRediff:
+//                intent.putExtra("rssLink",rssLinks.get(0));
+//                startActivity(intent);
+//                break;
+//            case R.id.btnCinemaBlend:
+//                intent.putExtra("rssLink",rssLinks.get(1));
+//                startActivity(intent);
+//                break;
+//        }
+//    }
+//}
+
+//import android.os.Bundle;
+//
+//import androidx.appcompat.app.AppCompatActivity;
+//
+//import com.google.android.gms.ads.AdRequest;
+//import com.google.android.gms.ads.AdView;
+//import com.google.android.gms.ads.MobileAds;
+//import com.google.android.gms.ads.initialization.InitializationStatus;
+//import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+//
+//public class MainActivity extends AppCompatActivity {
+//
+//    private AdView adView;
+//    AdRequest adRequest;
+//
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+//            @Override
+//            public void onInitializationComplete(InitializationStatus initializationStatus) {
+//            }
+//        });
+//
+//        adView = (AdView) findViewById(R.id.ad_view);
+//        adRequest = new AdRequest().Builder().build();
+//        adView.loadAd(adRequest);
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        if (adView != null){
+//            adView.pause();
+//        }
+//        super.onPause();
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        if (adView != null) {
+//            adView.resume();
+//        }
+//    }
+//
+//    @Override
+//    protected void onDestroy() {
+//        if (adView != null){
+//            adView.destroy();
+//        }
+//        super.onDestroy();
+//    }
+//}
+
+//import android.Manifest;
+//import android.app.Fragment;
+//import android.app.FragmentManager;
+//import android.content.pm.PackageManager;
+//import android.location.Location;
+//import android.os.Build;
+//import android.os.Bundle;
+//
+//import androidx.annotation.RequiresApi;
+//import androidx.core.content.ContextCompat;
+//
+//import com.google.android.gms.common.ConnectionResult;
+//import com.google.android.gms.common.api.GoogleApiClient;
+//import com.google.android.gms.location.LocationListener;
+//import com.google.android.gms.location.LocationRequest;
+//import com.google.android.gms.location.LocationServices;
+//import com.google.android.gms.maps.CameraUpdateFactory;
+//import com.google.android.gms.maps.GoogleMap;
+//import com.google.android.gms.maps.OnMapReadyCallback;
+//import com.google.android.gms.maps.SupportMapFragment;
+//import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+//import com.google.android.gms.maps.model.LatLng;
+//import com.google.android.gms.maps.model.Marker;
+//import com.google.android.gms.maps.model.MarkerOptions;
+//
+//
+//@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
+//public class MainActivity extends Fragment implements OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks,
+//        GoogleApiClient.OnConnectionFailedListener {
+//
+//    private GoogleMap mMap;
+//    Location mLastLocation;
+//    Marker mCurrLocationMarker;
+//    GoogleApiClient mGoogleApiClient;
+//    LocationRequest mLocationRequest;
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_maps);
+//        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+//                .findFragmentById(R.id.map);
+//        mapFragment.getMapAsync(this);
+//
+//    }
+//
+//    private void setContentView(int activity_maps) {
+//    }
+//
+//    @Override
+//    public void onMapReady(GoogleMap googleMap) {
+//        mMap = googleMap;
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            if (ContextCompat.checkSelfPermission(this,
+//                    Manifest.permission.ACCESS_FINE_LOCATION)
+//                    == PackageManager.PERMISSION_GRANTED) {
+//                buildGoogleApiClient();
+//                mMap.setMyLocationEnabled(true);
+//            }
+//        }
+//        else {
+//            buildGoogleApiClient();
+//            mMap.setMyLocationEnabled(true);
+//        }
+//
+//    }
+//    protected synchronized void buildGoogleApiClient() {
+//        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this);
+//        builder.addConnectionCallbacks(this);
+//        builder.addOnConnectionFailedListener(this);
+//        builder.addApi(LocationServices.API);
+//        mGoogleApiClient = builder.build();
+//        mGoogleApiClient.connect();
+//    }
+//
+//    @Override
+//    public void onConnected(Bundle bundle) {
+//
+//        mLocationRequest = new LocationRequest();
+//        mLocationRequest.setInterval(1000);
+//        mLocationRequest.setFastestInterval(1000);
+//        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+//        if (ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.ACCESS_FINE_LOCATION)
+//                == PackageManager.PERMISSION_GRANTED) {
+//            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+//        }
+//
+//    }
+//
+//    @Override
+//    public void onConnectionSuspended(int i) {
+//
+//    }
+//
+//    @Override
+//    public void onLocationChanged(Location location) {
+//
+//        mLastLocation = location;
+//        if (mCurrLocationMarker != null) {
+//            mCurrLocationMarker.remove();
+//        }
+//        //Place current location marker
+//        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+//        MarkerOptions markerOptions = new MarkerOptions();
+//        markerOptions.position(latLng);
+//        markerOptions.title("Current Position");
+//        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+//        mCurrLocationMarker = mMap.addMarker(markerOptions);
+//
+//        //move map camera
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+//        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+//
+//        //stop location updates
+//        if (mGoogleApiClient != null) {
+//            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+//        }
+//
+//    }
+//
+//    @Override
+//    public void onConnectionFailed(ConnectionResult connectionResult) {
+//
+//    }
+//}
 
 
 //import android.os.Bundle;
